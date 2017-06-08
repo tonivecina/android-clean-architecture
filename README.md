@@ -68,7 +68,7 @@ The services package must contains subpackages and the class files to execute se
 
 Please, you must not implement services like Location, Bus, Tracking... in Activities. The best is create a global service with manage control, the Activities will use this services.
 
-![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_services.png)
+<img src="https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_services.png" width="400">
 
 More info of class structures in [classes](#classes) section.
 
@@ -76,7 +76,7 @@ More info of class structures in [classes](#classes) section.
 
 The views classes must be ordered in subpackages and the name file ends with view type. For example, a editText for forms would can called **FormEditText** inside of *EditTexts* package.
 
-![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_views.png)
+<img src="https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_views.png" width="400">
 
 This is a simple full structure of project ordered in packages, subpackages and files:
 
@@ -146,14 +146,103 @@ PARENT CLASS NAME + SERVICE NAME + Service
 * ***UsersActivity****Ranking****Service***
 * ...
 
+<img src="https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_activities_full.png" width="400"/>
 
-![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_activities_full.png)
 
 ## Classes
 
-### Activities and fragments
+### Activities and Fragments
+
+An Activity or Fragment only can contain its override methods, getters and setters. From *onCreate* (Fragment included) will be initialized all services. Each service can invoke to another service through Activity or Fragment class with its getters.
+
+Please, try to use getters in local priority way (always same package).
+
+This is a simple example for an Activity:
+
+```android
+public class MainActivity extends AppCompatActivity {
+
+    private FrameLayout mContainerFrameLayout;
+
+    private MainActivityNavigationService mNavigationService;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
+    }
+
+    //region GettersReg
+    
+    FrameLayout getContainerFrameLayout() {
+        return mContainerFrameLayout;
+    }
+    
+    //endregion
+}
+```
+
+Other example for Fragment:
+
+```android
+public class LoginFragment extends Fragment {
+
+    private LoginFormEditText mEmailEditText, mPasswordEditText;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private Button mLoginButton;
+
+    public static LoginFragment get() {
+        LoginFragment fragment = new LoginFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_login, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        Credentials credentials = new Credentials();
+
+        mEmailEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_email);
+        mEmailEditText.setText(credentials.getEmail());
+
+        mPasswordEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_password);
+        mPasswordEditText.setText(credentials.getPasswordHash());
+
+        mLoginButton = (Button) view.findViewById(R.id.fragment_login_button);
+    }
+
+    //region GettersReg
+    LoginFormEditText getEmailEditText() {
+        return mEmailEditText;
+    }
+
+    LoginFormEditText getPasswordEditText() {
+        return mPasswordEditText;
+    }
+    //endregion
+}
+```
 
 ### Activities services
+
+This classes are used as services inside of the Activity or Fragment package. A service class can invoke to another service through Activity or Fragment.
 
 #### How to define services or implementations?
 
@@ -220,6 +309,76 @@ class LoginFragmentOnClickListener implements View.OnClickListener {
 
     private void onClickLogin() {
         ...
+    }
+}
+```
+
+This is other example of Activity navigations:
+
+```android
+public class MainActivity extends AppCompatActivity {
+
+    private FrameLayout mContainerFrameLayout;
+
+    private MainActivityNavigationService mNavigationService;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        synchronized (this) {
+            mNavigationService = new MainActivityNavigationService(this);
+        }
+
+        mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
+
+        mNavigationService.replaceLoginFragment();
+    }
+
+    //region GettersReg
+    FrameLayout getContainerFrameLayout() {
+        return mContainerFrameLayout;
+    }
+
+    public MainActivityNavigationService getNavigationService() {
+        return mNavigationService;
+    }
+    //endregion
+```
+
+```android
+public class MainActivityNavigationService {
+
+    private MainActivity mMainActivity;
+
+    MainActivityNavigationService(final MainActivity mainActivity) {
+        mMainActivity = mainActivity;
+    }
+
+    private void replace(FrameLayout frameLayout, Fragment fragment) {
+        FragmentTransaction fragmentTransaction = mMainActivity
+                .getFragmentManager()
+                .beginTransaction();
+
+        String tag = fragment.getClass().getSimpleName();
+
+        fragmentTransaction.replace(frameLayout.getId(), fragment, tag);
+        fragmentTransaction.commit();
+    }
+
+    public void replaceDetailFragment(final String origin) {
+        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
+        DetailFragment fragment = DetailFragment.get(origin);
+
+        replace(frameLayout, fragment);
+    }
+
+    void replaceLoginFragment() {
+        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
+        LoginFragment fragment = LoginFragment.get();
+
+        replace(frameLayout, fragment);
     }
 }
 ```
