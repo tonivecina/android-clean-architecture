@@ -42,13 +42,17 @@ More info of class structures in [classes](#classes) section.
 
 Configuration package contains Configuration files that it's Application class (used as Singleton) of the project. This class is used during all app cycle with services like user session, local parameters required... ActivityLifecycleCallbacks management can be implemented here for application status control.
 
-Please, check [configuration](#configuration_file) file section.
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_configuration.png)
 
+More info of class structures in [classes](#classes) section.
 
 ### Entities
 
-Please, check [entities](#entities_files) file section.
+All models and entities must be contained here.
 
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_entities.png)
+
+More info of class structures in [classes](#classes) section.
 
 ### Patterns
 
@@ -56,7 +60,7 @@ The global patterns that it can be used at any class are contained here like Boo
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_patterns.png)
 
-Please, check [patterns](#patterns_files) file section.
+More info of class structures in [classes](#classes) section.
 
 ### Services
 
@@ -64,7 +68,9 @@ The services package must contains subpackages and the class files to execute se
 
 Please, you must not implement services like Location, Bus, Tracking... in Activities. The best is create a global service with manage control, the Activities will use this services.
 
-Please, check [services](#services_files) files section.
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_services.png)
+
+More info of class structures in [classes](#classes) section.
 
 ### Views
 
@@ -264,7 +270,42 @@ final public class Configuration extends Application {
 
 ### Entities files
 
-Models and entities must be contained in *Entities* package. If an entity needs to use SharePreferences like credentials, the class entity would must be:
+Models and entities must be contained in *Entities* package.
+
+This is a simple entity:
+
+```android
+public class Profile {
+    private String mName;
+    private String mImageUrl;
+
+    //region GettersReg
+
+    public String getName() {
+        return mName;
+    }
+
+    public String getImageUrl() {
+        return mImageUrl;
+    }
+
+    //endregion
+
+    //region SettersReg
+
+    public void setName(String name) {
+        mName = name;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        mImageUrl = imageUrl;
+    }
+
+    //endregion
+}
+```
+
+If an entity needs to use SharePreferences like credentials, the class entity would must be:
 
 ```android
 final public class Credentials {
