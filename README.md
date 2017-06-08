@@ -640,6 +640,27 @@ In any class you can set log in a single line.
 DLog.success("Application is ready!")
 ```
 
+## Recommendations
+
+* Always to use region tags for Getters and Setters inside of class.
+
+```android
+//region GettersReg
+
+...
+
+//end
+
+//region SettersReg
+
+...
+
+///end
+```
+
+* The classes must not contains more than 250 lines.
+* Not use nomenclature for parameters or methods with more than 80 characters.
+
 ## Guidelines
 
 * [Code Style for Contributors](https://source.android.com/source/code-style)
