@@ -42,12 +42,12 @@ More info of class structures in [classes](#classes) section.
 
 Configuration package contains Configuration files that it's Application class (used as Singleton) of the project. This class is used during all app cycle with services like user session, local parameters required... ActivityLifecycleCallbacks management can be implemented here for application status control.
 
-Please, check [configuration](#configuration) file section.
+Please, check [configuration](#configuration_file) file section.
 
 
 ### Entities
 
-Please, check [entities](#entities) file section.
+Please, check [entities](#entities_files) file section.
 
 
 ### Patterns
@@ -56,7 +56,7 @@ The global patterns that it can be used at any class are contained here like Boo
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_patterns.png)
 
-Please, check [patterns](#patterns) file section.
+Please, check [patterns](#patterns_files) file section.
 
 ### Services
 
@@ -64,7 +64,7 @@ The services package must contains subpackages and the class files to execute se
 
 Please, you must not implement services like Location, Bus, Tracking... in Activities. The best is create a global service with manage control, the Activities will use this services.
 
-Please, check [services](#services) files section.
+Please, check [services](#services_files) files section.
 
 ### Views
 
@@ -153,7 +153,7 @@ PARENT CLASS NAME + SERVICE NAME + Service
 
 For example, if the activity or fragment contains buttons and this buttons needs to define actions, we will use OnClickListener. Please, don't include this implementation directly in Activity or Fragment class. We create new class and file as service and this interface will be included here.
 
-This is an example of LoginFragment of the capture on top.
+This is a simple example of LoginFragment:
 
 ```android
 public class LoginFragment extends Fragment {
@@ -218,7 +218,7 @@ class LoginFragmentOnClickListener implements View.OnClickListener {
 }
 ```
 
-### Configuration
+### Configuration file
 
 This is a simple Configuration example:
 
@@ -249,7 +249,7 @@ final public class Configuration extends Application {
 }
 ```
 
-***Not forget include the Configuration refer in Manifest file***.
+***Not forget to include the Configuration refer in Manifest file***.
 
 ```xml
 <application
@@ -262,7 +262,7 @@ final public class Configuration extends Application {
 </application>
 ```
 
-### Entities
+### Entities files
 
 Models and entities must be contained in *Entities* package. If an entity needs to use SharePreferences like credentials, the class entity would must be:
 
@@ -349,7 +349,7 @@ DLog.warning("User logged: " + String.valueOf(credentials.isLogged()));    // Us
 
 ```
 
-### Patterns
+### Patterns files
 
 This is an example of boolean:
 
@@ -369,7 +369,7 @@ String email = "me@email.com";
 boolean isValidEmail = Boolean.isValidEmail(email);    // true
 ```
 
-### Services
+### Services files
 
 This is a simple service to write in console under debug mode.
 
