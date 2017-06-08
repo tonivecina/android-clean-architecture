@@ -35,9 +35,119 @@ To define navigations will use *NavigationService*. Other files also allowed whe
 
 Native Activity functions as OnActivityResults, OnPermissionsResults... will be services too.
 
-This is a full Login Activity:
+More info of class structures in [classes](#classes) section.
+
+
+### Configuration
+
+Configuration package contains Configuration files that it's Application class (used as Singleton) of the project. This class is used during all app cycle with services like user session, local parameters required... ActivityLifecycleCallbacks management can be implemented here for application status control.
+
+Please, check [configuration](#configuration) file section.
+
+
+### Entities
+
+Please, check [entities](#entities) file section.
+
+
+### Patterns
+
+The global patterns that it can be used at any class are contained here like Boolean, String, etc. File of class must be named equal to object name; String, Boolean...
+
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_patterns.png)
+
+Please, check [patterns](#patterns) file section.
+
+### Services
+
+The services package must contains subpackages and the class files to execute services like Api connections, Location...
+
+Please, you must not implement services like Location, Bus, Tracking... in Activities. The best is create a global service with manage control, the Activities will use this services.
+
+Please, check [services](#services) files section.
+
+### Views
+
+The views classes must be ordered in subpackages and the name file ends with view type. For example, a editText for forms would can called **FormEditText** inside of *EditTexts* package.
+
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_views.png)
+
+This is a simple full structure of project ordered in packages, subpackages and files:
+
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_project_packages.png)
+
+## Files
+
+### Naming
+
+The files name also must have structure. We are going to order it in two categories; *Activity* files and *Service* files.
+
+#### Activity files
+
+Its name must be descriptive for its function, not apply insignificant logical and please, name not greater to 25 characters. When the file contains typed class like Activity, Fragment, Button, EditText, etc. 
+
+Its nomenclature must be:
+
+```
+SIMPLE NAME + CLASS TYPE
+```
+
+* *Main****Activity***
+* *Login****Fragment***
+* *Bold****Button***
+* *Form****EditText***
+* ...
+
+#### Service files
+
+This files are classes used as services of other classes. For example, if an Activity named MainActivity needs to implement OnClickListener interface, we will create new file: **MainActivityOnClickListener**.
+
+Methods like *OnActivityResults*, *OnRequestPermissionsResults*... inside of Activity class are categorized here too.
+
+Its nomenclature must be:
+
+```
+PARENT CLASS NAME + INTERFACE OR METHOD NAME
+```
+
+* *MainActivity****OnScrollListener***
+* *LoginFragment****OnClickListener***
+* *GoalActivity****OnActivityResults***
+* *RequestActivity****OnRequestPermissionsResults***
+* ...
+
+
+When a service class needs a service inside in other package, for example the Services package.
+
+Its nomenclature must be:
+
+```
+PARENT CLASS NAME + SERVICE NAME + SUBSERVICE PACKAGE NAME
+```
+
+* ***MapActivity****Location****Service***
+* ...
+
+Service termination also is used when service class comply with a strong function, for example navigations.
+
+Its nomenclature must be:
+
+```
+PARENT CLASS NAME + SERVICE NAME + Service
+```
+
+* ***LoginFragment****Credentials****Service***
+* ***UsersActivity****Ranking****Service***
+* ...
+
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_activities_full.png)
+
+## Classes
+
+### Activities and fragments
+
+### Activities services
 
 #### How to define services or implementations?
 
@@ -108,12 +218,7 @@ class LoginFragmentOnClickListener implements View.OnClickListener {
 }
 ```
 
-More info of class structures in [classes](#classes) section.
-
-
 ### Configuration
-
-Configuration package contains Configuration files that it's Application class (used as Singleton) of the project. This class is used during all app cycle with services like user session, local parameters required... ActivityLifecycleCallbacks management can be implemented here for application status control.
 
 This is a simple Configuration example:
 
@@ -144,10 +249,22 @@ final public class Configuration extends Application {
 }
 ```
 
+***Not forget include the Configuration refer in Manifest file***.
+
+```xml
+<application
+        android:name=".Configuration.Configuration"
+        android:allowBackup="true"
+        ...>
+        
+        ...
+        
+</application>
+```
 
 ### Entities
 
-Models and entities must be contained in this package. If an entity needs to use SharePreferences like credentials, the class entity would must be:
+Models and entities must be contained in *Entities* package. If an entity needs to use SharePreferences like credentials, the class entity would must be:
 
 ```android
 final public class Credentials {
@@ -202,319 +319,128 @@ final public class Credentials {
         editor.putString(BUNDLE_TOKEN, token);
         editor.apply();
     }
+    
+    public void clear() {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.remove(BUNDLE_EMAIL);
+        editor.remove(BUNDLE_PASSWORD_HASH);
+        editor.remove(BUNDLE_TOKEN);
+        editor.apply();
+    }
     //endregion
 }
 ```
 
+#### How to use it?
+
+```android
+Credentials credentials = new Credentials();
+credentials.set("me@email.com", "myPassword");
+credentials.set("MyToken123456789");
+
+if (credentials.isLogged()) {
+	String email = credentials.getEmail();	DLog.success("My email is: " + email);   // My email is: me@email.com
+	DLog.success("User logged: " + String.valueOf(credentials.isLogged()));    // User logged: true
+	
+	credentials.clear();
+}
+
+DLog.warning("User logged: " + String.valueOf(credentials.isLogged()));    // User logged: false
+
+```
+
 ### Patterns
 
-The global patterns that it can be used at any class are contained here like Boolean, String, etc. File of class must be named equal to object name; String, Boolean...
+This is an example of boolean:
 
-![](https://raw.githubusercontent.com/tonivecina/swift-clean-architecture/master/images/screen_folder_extensions.png)
+```android
+final public class Boolean {
 
-#### How define navigations?
-
-In common use of UIViewController extension is to define with arguments for a navigation. For example:
-
-```Swift
-extension UIViewController {
-
-    /// This function initialize DetailViewController and set Origin value.
-    ///
-    /// - Returns: DetailViewController.
-
-    static func detailViewController(origin: String) -> DetailViewController {
-        let viewController = DetailViewController(nibName: "DetailViewController", bundle: nil)
-        viewController.origin = origin
-
-        return viewController
+    public static boolean isValidEmail(CharSequence email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
-
-    /// This variable initialize FormViewController.
-    ///
-    /// - Returns: FormViewController.
-
-    static var formViewController: FormViewController {
-        return FormViewController(nibName: "FormViewController", bundle: nil)
-    }
-
 }
+```
+
+#### How to use it?
+
+```android
+String email = "me@email.com";
+boolean isValidEmail = Boolean.isValidEmail(email);    // true
 ```
 
 ### Services
 
-The services folder must contain subfolder and the class files to execute services like Api connections, CoreLocation...
-
-Please, you must not use services like CoreLocation, CoreData (and its protocols)... in ViewControllers. The best is create a global service with manage control, the ViewControllers will use this services.
-
 This is a simple service to write in console under debug mode.
 
-```Swift
-public struct Log {
+```android
+final public class DLog {
 
-    /// This method set message in console under debug mode.
-    ///
-    /// - Parameter message: This string is set in console.
-
-    fileprivate static func set(_ message: String) {
-
-        #if DEBUG
-            debugPrint(message,
-                       separator: "\n-----------------------\n",
-                       terminator: "\n-----------------------\n")
-        #endif
-    }
-}
-
-extension Log {
-
-    /// This method set message in console with *Success* prefix.
-    ///
-    /// - Parameter message: This string is set in console.
-
-    public static func success(_ message: String) {
-        return set("SUCCESS: " + message)
+    private enum Type {
+        DEBUG,
+        ERROR,
+        INFO,
+        WARNING
     }
 
-    /// This method set message in console with *Error* prefix.
-    ///
-    /// - Parameter message: This string is set in console.
+    final private static String SIGNATURE = "Clean Architecture";
 
-    public static func error(_ message: String) {
-        return set("ERROR: " + message)
+    private static void set(final String message, final Type type) {
+
+        if (!BuildConfig.DEBUG) return;
+
+        String separator = "----------------------------------------";
+
+        switch (type) {
+            case DEBUG:
+                Log.d(SIGNATURE, message);
+                Log.d(SIGNATURE, separator);
+                break;
+
+            case ERROR:
+                Log.e(SIGNATURE, message);
+                Log.e(SIGNATURE, message);
+                break;
+
+            case INFO:
+                Log.i(SIGNATURE, message);
+                Log.i(SIGNATURE, message);
+                break;
+
+            case WARNING:
+                Log.w(SIGNATURE, message);
+                Log.w(SIGNATURE, message);
+                break;
+        }
     }
 
-    /// This method set message in console with *Process* prefix.
-    ///
-    /// - Parameter message: This string is set in console.
-
-    public static func process(_ message: String) {
-        return set("PROCESS: " + message)
+    public static void success(final String message) {
+        set(message, Type.DEBUG);
     }
 
-    /// This method set message in console with *Warning* prefix.
-    ///
-    /// - Parameter message: This string is set in console.
+    public static void error(final String message) {
+        set(message, Type.ERROR);
+    }
 
-    public static func warning(_ message: String) {
-        return set("WARNING: " + message)
+    public static void info(final String message) {
+        set(message, Type.INFO);
+    }
+
+    public static void warning(final String message) {
+        set(message, Type.WARNING);
     }
 }
 ```
 
-#### how do it use?
+#### how to use it?
 
 In any class you can set log in a single line.
 
-```Swift
-Log.success("Application is ready!")
+```android
+DLog.success("Application is ready!")
 ```
 
-### ViewControllers
+## Guidelines
 
-This folder contains all ViewControllers of project. You must create a subfolder for each ViewController. This subfolder will contain the ViewController class, xib file and the files segmented by ViewController extension.
-
-Each protocol used by ViewController must be separated by an extension and file. Please, see [Files category](#files).
-
-![](https://raw.githubusercontent.com/tonivecina/swift-clean-architecture/master/images/screen_folder_viewcontrollers.png)
-
-In addition to protocols, this are a valid files:
-
-#### Configurations
-
-In this file/extension defines enums, static variables, private structs, etc. used by ViewController.
-
-```Swift
-extension FormViewController {
-
-    enum TextFieldTag: Int {
-        case email = 0
-        case password = 1
-    }
-
-    struct Form {
-        var email: String?
-        var password: String?
-    }
-
-    enum FormError: Error {
-        case reason(detail: String)
-        case unknown
-    }
-}
-```
-
-#### IBActions
-
-This extension contains all IBActions that UIView needs.
-
-```Swift
-extension FormViewController {
-
-    @IBAction private func pressSubmit(_ sender: UIButton) {
-        view.endEditing(true)
-        
-        do {
-            try setCredentials(email: form.email, password: form.password)
-
-            pushDetailViewController()
-
-        } catch FormError.reason(let detail) {
-            presentErrorAlertController(detail)
-
-        } catch {
-            presentErrorAlertController("An error occurred while try to set credentials. Try again.")
-        }
-    }
-    
-    @IBAction private func ...
-    ...
-
-}
-```
-
-#### Navigations
-
-All navigations produced in the ViewController must be contained here. In addition, each function must be begin by ***present*** or ***push*** *(depending of navigation type)*.
-
-```Swift
-extension FormViewController {
-
-    func presentErrorAlertController(_ message: String) {
-        let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-
-        let action = UIAlertAction(title: "Ok", style: .default, handler: nil)
-        alertController.addAction(action)
-
-        present(alertController, animated: true, completion: nil)
-        Log.error(message)
-    }
-
-    func pushDetailViewController() {
-        let origin = String(describing: FormViewController.self)
-
-        let viewController = UIViewController.detailViewController(origin: origin)
-        navigationController?.pushViewController(viewController, animated: true)
-
-        Log.process("DetailViewController will be pushed from " + origin)
-    }
-}
-```
-
-#### Protocols
-
-It the ViewControllers use protocols like UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate... This extensions are categorized as Protocol extension and separated by files with *View associated* plural name. For example, **UITableViewDataSource** and **UITableViewDelegate** extensions must be contained in *ViewController+UITableViews* file or **UITextFieldDelegate** in *ViewController+UITextFields* file.
-
-```Swift
-extension FormViewController: UITextFieldDelegate {
-
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        
-        return true
-    }
-
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-
-        if let loginTextField = textField as? LoginFormTextField {
-            loginTextField.isHighlighted = true
-        }
-
-    }
-
-    func textFieldDidEndEditing(_ textField: UITextField) {
-
-        guard let tag = TextFieldTag(rawValue: textField.tag) else {
-            fatalError("Textfield not defined.")
-        }
-
-        switch tag {
-
-        case .email:    form.email = textField.text
-        case .password: form.password = textField.text
-
-        }
-
-        if let loginTextField = textField as? LoginFormTextField {
-            loginTextField.isHighlighted = false
-        }
-    }
-}
-```
-
-#### Resources
-
-This extension contains all methods not contains in previous extensions. Methods or variables like setters, getters, dispatchers...
-
-#### Service
-
-If the ViewController uses a service contained in **Services** folder or the service is very defined, this extensions will contain refered methods. For example, if *Service* folder has Location service, this extension file must be called *ViewController+LocationService*.
-
-Another example for credentials management:
-
-```Swift
-extension FormViewController {
-
-    func setCredentials(email: String?, password: String?) throws {
-
-        guard let email = email else {
-            throw FormError.reason(detail: "Email not found.")
-        }
-
-        guard Bool.isEmailValid(email) else {
-            throw FormError.reason(detail: "Email is invalid.")
-        }
-
-        guard let password = password else {
-            throw FormError.reason(detail: "Password not found.")
-        }
-
-        guard password.characters.count > 3 else {
-            throw FormError.reason(detail: "Password must contains more than 3 characteres.")
-        }
-
-        let credentials = Credentials()
-
-        guard credentials.set(email: email, passwordHash: password) else {
-            throw FormError.unknown
-        }
-
-        Log.success("Credentials were stored.")
-    }
-
-}
-```
-
-### Views
-
-The views classes must be ordered in subfolders and the name file ends with view type. For example, a textfield for forms would can called **FormTextField** inside of *UITextfields* folder.
-
-![](https://raw.githubusercontent.com/tonivecina/swift-clean-architecture/master/images/screen_folder_views.png)
-
-This is a full structure of project ordered in folders, subfolders and files:
-
-![](https://raw.githubusercontent.com/tonivecina/swift-clean-architecture/master/images/screen_folder_project.png)
-
-## Files
-
-### Naming
-
-The files name also must have structure. We are going to order it in two categories; *Simple* files and *Extension* files.
-
-#### Simple files
-
-Its name must be descriptive for its function, not apply insignificant logical and please, name not greater to 25 characters.
-
-When the file contains typed class like UIViewController, UIButton, UITextfield, etc. Its structure must be: ***simple name*** + ***class type***. For example, DetailViewController, LoginViewController, BoldButton, FormTextField...
-
-![](https://raw.githubusercontent.com/tonivecina/swift-clean-architecture/master/images/screen_files_detailviewcontroller.png)
-
-#### Extension files
-
-This files contains extensions of other classes and it must be named with a structure like *[parent class file name]* + *[+ symbol]* + *[service or descriptive function]*. For example, **FomViewController** contains UITextFieldDelegate protocol for the UITextFields contained in view, so this protocol is contained in a file with a extension of FormViewController and its name would be *FormViewController+UITextFields*. A similar case would be with UITableViewDataSource and UITableViewDelegate, its file would be *FormViewController+UITableViews*.
-
-![](https://raw.githubusercontent.com/tonivecina/swift-clean-architecture/master/images/screen_files_formviewcontroller.png)
-
-## Classes and Structures
-
-Please, for a correct and clean code follow [The Official raywenderlich.com Swift Style Guide](https://github.com/raywenderlich/swift-style-guide)
+* [Code Style for Contributors](https://source.android.com/source/code-style)
+* [Ribot Project guidelines](https://github.com/ribot/android-guidelines/blob/master/project_and_code_guidelines.md)

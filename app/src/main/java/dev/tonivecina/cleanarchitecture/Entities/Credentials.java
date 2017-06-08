@@ -62,5 +62,13 @@ final public class Credentials {
         editor.putString(BUNDLE_TOKEN, token);
         editor.apply();
     }
+
+    public void clear() {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.remove(BUNDLE_EMAIL);
+        editor.remove(BUNDLE_PASSWORD_HASH);
+        editor.remove(BUNDLE_TOKEN);
+        editor.apply();
+    }
     //endregion
 }
