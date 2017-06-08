@@ -1,9 +1,9 @@
-package dev.tonivecina.cleanarchitecture.Activities2;
+package dev.tonivecina.cleanarchitecture.Activities;
 
 import android.support.v7.app.AppCompatActivity;
 
 /**
- * Created by tvecina on 6/7/17.
+ * @author Toni Vecina on 6/7/17.
  */
 
 public class AbstractActivity extends AppCompatActivity {

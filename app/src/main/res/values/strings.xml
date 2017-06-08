@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Clean Architecture</string>
+
+    <string name="action_login">Login</string>
+
+    <string name="placeholder_email">here@email.com</string>
+    <string name="placeholder_password">password</string>
+
+    <string name="title_email">Email:</string>
+    <string name="title_origin">Origin:</string>
+    <string name="title_password">Password:</string>
+
+</resources>

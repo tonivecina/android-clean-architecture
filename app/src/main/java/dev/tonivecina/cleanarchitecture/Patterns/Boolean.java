@@ -1,8 +1,14 @@
 package dev.tonivecina.cleanarchitecture.Patterns;
 
+import android.util.Patterns;
+
 /**
- * Created by tvecina on 6/7/17.
+ * @author Toni Vecina on 6/7/17.
  */
 
-public class Boolean {
+final public class Boolean {
+
+    public static boolean isValidEmail(CharSequence email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
 }

@@ -5,16 +5,17 @@ import android.app.FragmentTransaction;
 import android.widget.FrameLayout;
 
 import dev.tonivecina.cleanarchitecture.Activities.Main.Fragments.Detail.DetailFragment;
+import dev.tonivecina.cleanarchitecture.Activities.Main.Fragments.Login.LoginFragment;
 
 /**
  * @author Toni Vecina on 6/7/17.
  */
 
-class MainActivityNavigations {
+public class MainActivityNavigationService {
 
     private MainActivity mMainActivity;
 
-    MainActivityNavigations(final MainActivity mainActivity) {
+    MainActivityNavigationService(final MainActivity mainActivity) {
         mMainActivity = mainActivity;
     }
 
@@ -23,13 +24,22 @@ class MainActivityNavigations {
                 .getFragmentManager()
                 .beginTransaction();
 
-        fragmentTransaction.replace(frameLayout.getId(), fragment, fragment.getTag());
+        String tag = fragment.getClass().getSimpleName();
+
+        fragmentTransaction.replace(frameLayout.getId(), fragment, tag);
         fragmentTransaction.commit();
     }
 
-    public void replaceDetailFragment() {
+    public void replaceDetailFragment(final String origin) {
         FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
-        DetailFragment fragment = DetailFragment.get();
+        DetailFragment fragment = DetailFragment.get(origin);
+
+        replace(frameLayout, fragment);
+    }
+
+    void replaceLoginFragment() {
+        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
+        LoginFragment fragment = LoginFragment.get();
 
         replace(frameLayout, fragment);
     }
