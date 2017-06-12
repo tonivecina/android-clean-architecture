@@ -37,7 +37,7 @@ The packages and subpackages must be ordered alphabetically for a fast localizat
 
 Activities package must contains every activity of project divided in sub-packages. Each package will have Activity class and other class with services and implementations. If the activity has fragments, this fragments will be contained in sub-packages inside of this package.
 
-Each interface used by Activity or Fragment must be separated by class (as service) and file. Please, see [Files category](#files).
+Each interface used by Activity or Fragment must be separated by class (as service) and file.
 
 This packages must be named with Activity name or Fragment name without key '*Activity*' or '*Fragment*'. For example, package of **MainActivity** will be *main* or  **LoginFragment** will be *login*.
 
