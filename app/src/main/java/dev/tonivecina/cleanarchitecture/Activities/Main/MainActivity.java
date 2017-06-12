@@ -1,5 +1,7 @@
 package dev.tonivecina.cleanarchitecture.Activities.Main;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.FrameLayout;
@@ -27,16 +29,22 @@ public class MainActivity extends AppCompatActivity {
 
         mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
 
-        mProcessor
-                .getRoutes()
-                .replaceLoginFragment();
+        mProcessor.onCreate();
+    }
+
+    void replace(Fragment fragment) {
+        FragmentTransaction fragmentTransaction = mProcessor
+                .getView()
+                .getFragmentManager()
+                .beginTransaction();
+
+        String tag = fragment.getClass().getSimpleName();
+
+        fragmentTransaction.replace(mContainerFrameLayout.getId(), fragment, tag);
+        fragmentTransaction.commit();
     }
 
     //region GettersReg
-    FrameLayout getContainerFrameLayout() {
-        return mContainerFrameLayout;
-    }
-
     public MainActivityProcessor getProcessor() {
         return mProcessor;
     }

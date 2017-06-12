@@ -17,6 +17,10 @@ public final class MainActivityProcessor {
         }
     }
 
+    void onCreate() {
+        mRoutes.replaceLoginFragment();
+    }
+
     //region GettersReg
     MainActivity getView() {
         return mView;

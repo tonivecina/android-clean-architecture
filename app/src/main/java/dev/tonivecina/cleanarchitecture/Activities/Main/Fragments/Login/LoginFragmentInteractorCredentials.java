@@ -34,5 +34,4 @@ final class LoginFragmentInteractorCredentials {
         DLog.success("Credentials were stored.");
     }
     //endregion
-
 }

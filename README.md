@@ -5,21 +5,35 @@ This guide will show how to build a Android project with a clean architecture. I
 ## Table of contents
 
 * [Packages](#packages)
-	* [Activities](#activities)
-	* [Configuration](#configuration)
-	* [Entities](#entities)
-	* [Patterns](#patterns)
-	* [Services](#services)
+	* [Activities](#activities-package)
+	* [Configuration](#configuration-package)
+	* [Entities](#entities-package)
+	* [Patterns](#patterns-package)
+	* [Services](#services-package)
 	* [Views](#views)
-* [Files](#files)
-	* [Naming](#naming)
-* [Classes](#classes)
+
+* [Activities and fragments](#activities-and-fragments)
+	* [View](#view)
+	* [Processor](#processor)
+	* [Listener](#listener)
+	* [Routes](#routes)
+	* [Interactor](#interactor)
+
+* [Entities](#entities)
+	* [Local](#local-entity)
+	* [Dynamic](#dynamic-entity)
+
+* [Patterns](#patterns)
+
+* [Services](#services)
+
+* [Views](#views)
 
 ## Packages
 
 The packages and subpackages must be ordered alphabetically for a fast localization (Automatic function of Android Studio). The valid packages will show hereunder.
 
-### Activities
+### Activities package
 
 Activities package must contains every activity of project divided in sub-packages. Each package will have Activity class and other class with services and implementations. If the activity has fragments, this fragments will be contained in sub-packages inside of this package.
 
@@ -29,40 +43,26 @@ This packages must be named with Activity name or Fragment name without key '*Ac
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_activities.png)
 
-#### Which are the services files allowed?
 
-To define navigations will use *NavigationService*. Other files also allowed when its function is very defined like network services, location services... Please, you must not mix functionalities in services files, only call between them through Activity or Fragment. When it's necessary functions mixed, you must use **ResourcesService**.
+### Configuration package
 
-Native Activity functions as OnActivityResults, OnPermissionsResults... will be services too.
-
-More info of class structures in [classes](#classes) section.
-
-
-### Configuration
-
-Configuration package contains Configuration files that it's Application class (used as Singleton) of the project. This class is used during all app cycle with services like user session, local parameters required... ActivityLifecycleCallbacks management can be implemented here for application status control.
+If you wish manage application class of your project, Configuration file is your file and it will be contained in this package.
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_configuration.png)
 
-More info of class structures in [classes](#classes) section.
-
-### Entities
+### Entities package
 
 All models and entities must be contained here.
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_entities.png)
 
-More info of class structures in [classes](#classes) section.
-
-### Patterns
+### Patterns package
 
 The global patterns that it can be used at any class are contained here like Boolean, String, etc. File of class must be named equal to object name; String, Boolean...
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_patterns.png)
 
-More info of class structures in [classes](#classes) section.
-
-### Services
+### Services package
 
 The services package must contains subpackages and the class files to execute services like Api connections, Location...
 
@@ -72,7 +72,7 @@ Please, you must not implement services like Location, Bus, Tracking... in Activ
 
 More info of class structures in [classes](#classes) section.
 
-### Views
+### Views package
 
 The views classes must be ordered in subpackages and the name file ends with view type. For example, a editText for forms would can called **FormEditText** inside of *EditTexts* package.
 
@@ -82,33 +82,203 @@ This is a simple full structure of project ordered in packages, subpackages and 
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_project_packages.png)
 
-## Files
+## Activities and fragments
 
-### Naming
+The Activity and Fragment cycles are segmented with different elements:
 
-The files name also must have structure. We are going to order it in two categories; *Activity* files and *Service* files.
+### View
 
-#### Activity files
+View element is the Activity or Fragment class. All UI layer is contained here. It's important that this class doesn't implement interfaces because this package will have Listener elements to do it.
 
-Its name must be descriptive for its function, not apply insignificant logical and please, name not greater to 25 characters. When the file contains typed class like Activity, Fragment, Button, EditText, etc. 
+In this class the Process element will be initialized to manage all elements in this pacakge except the view. In addition, It only must contain Getters and Setters for UI.
 
-Its nomenclature must be:
+This is a simple Activity example:
 
+```Android
+public class MainActivity extends AppCompatActivity {
+
+    private FrameLayout mContainerFrameLayout;
+
+    private MainActivityProcessor mProcessor;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        synchronized (this) {
+            mProcessor = new MainActivityProcessor(this);
+        }
+
+        mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
+
+        mProcessor
+                .getRoutes()
+                .replaceLoginFragment();
+    }
+
+    void replace(Fragment fragment) {
+        FragmentTransaction fragmentTransaction = mProcessor
+                .getView()
+                .getFragmentManager()
+                .beginTransaction();
+
+        String tag = fragment.getClass().getSimpleName();
+
+        fragmentTransaction.replace(mContainerFrameLayout.getId(), fragment, tag);
+        fragmentTransaction.commit();
+    }
+
+    //region GettersReg
+    public MainActivityProcessor getProcessor() {
+        return mProcessor;
+    }
+    //endregion
+}
 ```
-SIMPLE NAME + CLASS TYPE
+
+... or Fragment:
+
+```Android
+public class LoginFragment extends Fragment {
+
+    private Button mLoginButton;
+    private LoginFormEditText mEmailEditText, mPasswordEditText;
+
+    private LoginFragmentProcessor mProcessor;
+
+    public static LoginFragment get() {
+        LoginFragment fragment = new LoginFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        synchronized (this) {
+            mProcessor = new LoginFragmentProcessor(this);
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_login, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        mEmailEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_email);
+        mPasswordEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_password);
+
+        LoginFragmentOnClickListener onClickListener = mProcessor.getOnClickListener();
+
+        mLoginButton = (Button) view.findViewById(R.id.fragment_login_button);
+        mLoginButton.setOnClickListener(onClickListener);
+
+        mProcessor.onViewCreated();
+    }
+
+    //region GettersReg
+    String getEmail() {
+        return mEmailEditText
+                .getText()
+                .toString();
+    }
+
+    String getPassword() {
+        return mPasswordEditText
+                .getText()
+                .toString();
+    }
+    //endregion
+
+    //region SettersReg
+    void setCredentials(@Nullable String email, @Nullable String password) {
+        mEmailEditText.setText(email);
+        mPasswordEditText.setText(password);
+    }
+    //endregion
+}
 ```
 
-* *Main****Activity***
-* *Login****Fragment***
-* *Bold****Button***
-* *Form****EditText***
-* ...
+### Processor
 
-#### Service files
+The Process class will manage all elements in this package. This class is the communication channel with the view. Furthermore all elements in this package except the view will be initialized here.
 
-This files are classes used as services of other classes. For example, if an Activity named MainActivity needs to implement OnClickListener interface, we will create new file: **MainActivityOnClickListener**.
+This is a Process example with Listener and Interactor:
 
-Methods like *OnActivityResults*, *OnRequestPermissionsResults*... inside of Activity class are categorized here too.
+```Android
+final class LoginFragmentProcessor {
+
+    private LoginFragment mView;
+    private Context mContext;
+
+    private LoginFragmentInteractorCredentials mInteractorCredentials;
+
+    private LoginFragmentOnClickListener mOnClickListener;
+
+    LoginFragmentProcessor(LoginFragment view) {
+        mView = view;
+        mContext = mView.getContext();
+
+        synchronized (this) {
+            mInteractorCredentials = new LoginFragmentInteractorCredentials();
+
+            mOnClickListener = new LoginFragmentOnClickListener(this);
+        }
+    }
+
+    void onViewCreated() {
+        Credentials credentials = mInteractorCredentials.getCredentials();
+        mView.setCredentials(credentials.getEmail(), credentials.getPasswordHash());
+    }
+
+    //region GettersReg
+    LoginFragment getView() {
+        return mView;
+    }
+
+    LoginFragmentOnClickListener getOnClickListener() {
+        return mOnClickListener;
+    }
+    //endregion
+
+    //region SettersReg
+    void setCredentials() {
+        try {
+            String email = mView.getEmail();
+            String password = mView.getPassword();
+
+            mInteractorCredentials.set(email, password);
+
+            if (mContext instanceof MainActivity) {
+                MainActivity activity = (MainActivity) mContext;
+                activity
+                        .getProcessor()
+                        .getRoutes()
+                        .replaceDetailFragment(mView.getClass().getSimpleName());
+            }
+
+        } catch (Exception exception) {
+            Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    //endregion
+}
+```
+
+### Listener
+
+The Listener elements correspond with View listeners. This listeners will not apply in view directly because it's managed by Processor. In this class, interfaces like OnClickListener, OnFocusChangeListeners, OnScrollListener... will be implemented.
+
+Methods like *OnActivityResults*, *OnRequestPermissionsResults*... inside of Activity class are categorized as listener elements too.
 
 Its nomenclature must be:
 
@@ -122,175 +292,15 @@ PARENT CLASS NAME + INTERFACE OR METHOD NAME
 * *RequestActivity****OnRequestPermissionsResults***
 * ...
 
+This is an example for a click listener:
 
-When a service class needs a service inside in other package, for example the Services package.
-
-Its nomenclature must be:
-
-```
-PARENT CLASS NAME + SERVICE NAME + SUBSERVICE PACKAGE NAME
-```
-
-* ***MapActivity****Location****Service***
-* ...
-
-Service termination also is used when service class comply with a strong function, for example navigations.
-
-Its nomenclature must be:
-
-```
-PARENT CLASS NAME + SERVICE NAME + Service
-```
-
-* ***LoginFragment****Credentials****Service***
-* ***UsersActivity****Ranking****Service***
-* ...
-
-<img src="https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_activities_full.png" width="400"/>
-
-
-## Classes
-
-### Activities and Fragments
-
-An Activity or Fragment only can contain its override methods, getters and setters. From *onCreate* (Fragment included) will be initialized all services. Each service can invoke to another service through Activity or Fragment class with its getters.
-
-Please, try to use getters in local priority way (always same package).
-
-This is a simple example for an Activity:
-
-```android
-public class MainActivity extends AppCompatActivity {
-
-    private FrameLayout mContainerFrameLayout;
-
-    private MainActivityNavigationService mNavigationService;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
-    }
-
-    //region GettersReg
-    
-    FrameLayout getContainerFrameLayout() {
-        return mContainerFrameLayout;
-    }
-    
-    //endregion
-}
-```
-
-Other example for Fragment:
-
-```android
-public class LoginFragment extends Fragment {
-
-    private LoginFormEditText mEmailEditText, mPasswordEditText;
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private Button mLoginButton;
-
-    public static LoginFragment get() {
-        LoginFragment fragment = new LoginFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_login, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        Credentials credentials = new Credentials();
-
-        mEmailEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_email);
-        mEmailEditText.setText(credentials.getEmail());
-
-        mPasswordEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_password);
-        mPasswordEditText.setText(credentials.getPasswordHash());
-
-        mLoginButton = (Button) view.findViewById(R.id.fragment_login_button);
-    }
-
-    //region GettersReg
-    LoginFormEditText getEmailEditText() {
-        return mEmailEditText;
-    }
-
-    LoginFormEditText getPasswordEditText() {
-        return mPasswordEditText;
-    }
-    //endregion
-}
-```
-
-### Activities services
-
-This classes are used as services inside of the Activity or Fragment package. A service class can invoke to another service through Activity or Fragment.
-
-#### How to define services or implementations?
-
-For example, if the activity or fragment contains buttons and this buttons needs to define actions, we will use OnClickListener. Please, don't include this implementation directly in Activity or Fragment class. We create new class and file as service and this interface will be included here.
-
-This is a simple example of LoginFragment:
-
-```android
-public class LoginFragment extends Fragment {
-
-    private LoginFragmentOnClickListener mOnClickListenerService;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        synchronized (this) {
-            mOnClickListenerService = new LoginFragmentOnClickListener(this);
-        }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_login, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        Button loginButton = (Button) view.findViewById(R.id.fragment_login_button);
-        loginButton.setOnClickListener(mOnClickListenerService);
-    }
-}
-```
-
-In every constructor of each service class will be included Activity or Fragment referred, **only if it's necessary**.
-
-This example corresponds to LoginFragmentOnClickListener service.
-
-```android
+```Android
 class LoginFragmentOnClickListener implements View.OnClickListener {
 
-    private LoginFragment mLoginFragment;
+    private LoginFragmentProcessor mProcessor;
 
-    LoginFragmentOnClickListener(LoginFragment fragment) {
-        mLoginFragment = fragment;
+    LoginFragmentOnClickListener(LoginFragmentProcessor processor) {
+        mProcessor = processor;
     }
 
     @Override
@@ -299,346 +309,105 @@ class LoginFragmentOnClickListener implements View.OnClickListener {
 
         switch (id) {
             case R.id.fragment_login_button:
-                onClickLogin();
+                mProcessor.setCredentials();
                 break;
 
             default:
                 break;
         }
     }
-
-    private void onClickLogin() {
-        ...
-    }
 }
 ```
 
-This is other example of Activity navigations:
+### Routes
 
-```android
-public class MainActivity extends AppCompatActivity {
+All navigations and connections with other activites or fragments are defined here. You apply intents here. Look at this example:
 
-    private FrameLayout mContainerFrameLayout;
+```Android
+public final class MainActivityRoutes {
 
-    private MainActivityNavigationService mNavigationService;
+    private MainActivityProcessor mProcessor;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        synchronized (this) {
-            mNavigationService = new MainActivityNavigationService(this);
-        }
-
-        mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
-
-        mNavigationService.replaceLoginFragment();
-    }
-
-    //region GettersReg
-    FrameLayout getContainerFrameLayout() {
-        return mContainerFrameLayout;
-    }
-
-    public MainActivityNavigationService getNavigationService() {
-        return mNavigationService;
-    }
-    //endregion
-```
-
-```android
-public class MainActivityNavigationService {
-
-    private MainActivity mMainActivity;
-
-    MainActivityNavigationService(final MainActivity mainActivity) {
-        mMainActivity = mainActivity;
-    }
-
-    private void replace(FrameLayout frameLayout, Fragment fragment) {
-        FragmentTransaction fragmentTransaction = mMainActivity
-                .getFragmentManager()
-                .beginTransaction();
-
-        String tag = fragment.getClass().getSimpleName();
-
-        fragmentTransaction.replace(frameLayout.getId(), fragment, tag);
-        fragmentTransaction.commit();
+    MainActivityRoutes(final MainActivityProcessor processor) {
+        mProcessor = processor;
     }
 
     public void replaceDetailFragment(final String origin) {
-        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
         DetailFragment fragment = DetailFragment.get(origin);
 
-        replace(frameLayout, fragment);
+        mProcessor
+                .getView()
+                .replace(fragment);
     }
 
     void replaceLoginFragment() {
-        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
         LoginFragment fragment = LoginFragment.get();
 
-        replace(frameLayout, fragment);
+        mProcessor
+                .getView()
+                .replace(fragment);
     }
-}
-```
-
-### Configuration file
-
-This is a simple Configuration example:
-
-```android
-final public class Configuration extends Application {
-
-    private static Configuration mInstance;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        mInstance = this;
-
-        DLog.success("Application is ready!");
-    }
-
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-    }
-
-    //region GettersReg
     
-    public static synchronized Configuration get() { return mInstance; }
-    
-    //endregion
+    void intentLoginActivity() {
+        LoginActivity activity = new LoginActivity();
+
+        Intent intent = new Intent(mProcessor.getView(), LoginActivity.class);
+        mProcessor
+                .getView()
+                .startActivity(intent);
+    }
 }
 ```
 
-***Not forget to include the Configuration refer in Manifest file***.
+### Interactor
 
-```xml
-<application
-        android:name=".Configuration.Configuration"
-        android:allowBackup="true"
-        ...>
-        
-        ...
-        
-</application>
-```
+The Interactors can communicate directly with entities to manage data or services.
 
-### Entities files
-
-Models and entities must be contained in *Entities* package.
-
-This is a simple entity:
-
-```android
-public class Profile {
-    private String mName;
-    private String mImageUrl;
+```Android
+final class LoginFragmentInteractorCredentials {
 
     //region GettersReg
-
-    public String getName() {
-        return mName;
-    }
-
-    public String getImageUrl() {
-        return mImageUrl;
-    }
-
-    //endregion
-
-    //region SettersReg
-
-    public void setName(String name) {
-        mName = name;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        mImageUrl = imageUrl;
-    }
-
-    //endregion
-}
-```
-
-If an entity needs to use SharePreferences like credentials, the class entity would must be:
-
-```android
-final public class Credentials {
-    private final String PREFERENCES_NAME = "credentials";
-
-    private final String BUNDLE_EMAIL = "email";
-    private final String BUNDLE_PASSWORD_HASH = "passwordHash";
-    private final String BUNDLE_TOKEN = "token";
-
-    private SharedPreferences mPreferences;
-
-    public Credentials() {
-        Context context = Configuration.get();
-
-        synchronized (this) {
-            mPreferences = context
-                    .getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-        }
-    }
-
-    //region GettersReg
-    @Nullable
-    public String getEmail() {
-        return mPreferences.getString(BUNDLE_EMAIL, null);
-    }
-
-    @Nullable
-    public String getPasswordHash() {
-        return mPreferences.getString(BUNDLE_PASSWORD_HASH, null);
-    }
-
-    @Nullable
-    public String getToken() {
-        return mPreferences.getString(BUNDLE_TOKEN, null);
-    }
-
-    public boolean isLogged() {
-        return getEmail() != null && getPasswordHash() != null && getToken() != null;
+    Credentials getCredentials() {
+        return new Credentials();
     }
     //endregion
 
     //region SettersReg
-    public void set(final String email, final String passwordHash) {
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putString(BUNDLE_EMAIL, email);
-        editor.putString(BUNDLE_PASSWORD_HASH, passwordHash);
-        editor.apply();
-    }
+    void set(final String email, final String password) throws Exception {
 
-    public void set(final String token) {
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putString(BUNDLE_TOKEN, token);
-        editor.apply();
-    }
-    
-    public void clear() {
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.remove(BUNDLE_EMAIL);
-        editor.remove(BUNDLE_PASSWORD_HASH);
-        editor.remove(BUNDLE_TOKEN);
-        editor.apply();
+        if (email.isEmpty())
+            throw new Exception("Email not found");
+
+        if (!Boolean.isValidEmail(email))
+            throw new Exception("Email is invalid");
+
+        if (password.length() < 4)
+            throw new Exception("Password must contains more than 3 characters");
+
+        Credentials credentials = getCredentials();
+        credentials.set(email, password);
+
+        DLog.success("Credentials were stored.");
     }
     //endregion
 }
 ```
 
-#### How to use it?
+This architecture paradigm is:
 
-```android
-Credentials credentials = new Credentials();
-credentials.set("me@email.com", "myPassword");
-credentials.set("MyToken123456789");
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_activity_paradigm.png)
 
-if (credentials.isLogged()) {
-	String email = credentials.getEmail();	DLog.success("My email is: " + email);   // My email is: me@email.com
-	DLog.success("User logged: " + String.valueOf(credentials.isLogged()));    // User logged: true
-	
-	credentials.clear();
-}
+## Entities
 
-DLog.warning("User logged: " + String.valueOf(credentials.isLogged()));    // User logged: false
+### Local entity
 
-```
+### Dynamic entity
 
-### Patterns files
+## Patterns
 
-This is an example of boolean:
+## Services
 
-```android
-final public class Boolean {
-
-    public static boolean isValidEmail(CharSequence email) {
-        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-}
-```
-
-#### How to use it?
-
-```android
-String email = "me@email.com";
-boolean isValidEmail = Boolean.isValidEmail(email);    // true
-```
-
-### Services files
-
-This is a simple service to write in console under debug mode.
-
-```android
-final public class DLog {
-
-    private enum Type {
-        DEBUG,
-        ERROR,
-        INFO,
-        WARNING
-    }
-
-    final private static String SIGNATURE = "Clean Architecture";
-
-    private static void set(final String message, final Type type) {
-
-        if (!BuildConfig.DEBUG) return;
-
-        String separator = "----------------------------------------";
-
-        switch (type) {
-            case DEBUG:
-                Log.d(SIGNATURE, message);
-                Log.d(SIGNATURE, separator);
-                break;
-
-            case ERROR:
-                Log.e(SIGNATURE, message);
-                Log.e(SIGNATURE, message);
-                break;
-
-            case INFO:
-                Log.i(SIGNATURE, message);
-                Log.i(SIGNATURE, message);
-                break;
-
-            case WARNING:
-                Log.w(SIGNATURE, message);
-                Log.w(SIGNATURE, message);
-                break;
-        }
-    }
-
-    public static void success(final String message) {
-        set(message, Type.DEBUG);
-    }
-
-    public static void error(final String message) {
-        set(message, Type.ERROR);
-    }
-
-    public static void info(final String message) {
-        set(message, Type.INFO);
-    }
-
-    public static void warning(final String message) {
-        set(message, Type.WARNING);
-    }
-}
-```
-
-#### how to use it?
-
-In any class you can set log in a single line.
-
-```android
-DLog.success("Application is ready!")
-```
+## Views
 
 ## Recommendations
 
