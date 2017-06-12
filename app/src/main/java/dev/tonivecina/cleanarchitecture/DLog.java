@@ -1,4 +1,4 @@
-package dev.tonivecina.cleanarchitecture.Services;
+package dev.tonivecina.cleanarchitecture;
 
 import android.util.Log;
 

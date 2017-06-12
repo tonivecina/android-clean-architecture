@@ -4,7 +4,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.FrameLayout;
 
-import dev.tonivecina.cleanarchitecture.Entities.Credentials;
 import dev.tonivecina.cleanarchitecture.R;
 
 /**
@@ -15,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FrameLayout mContainerFrameLayout;
 
-    private MainActivityNavigationService mNavigationService;
+    private MainActivityProcessor mProcessor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,12 +22,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         synchronized (this) {
-            mNavigationService = new MainActivityNavigationService(this);
+            mProcessor = new MainActivityProcessor(this);
         }
 
         mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
 
-        mNavigationService.replaceLoginFragment();
+        mProcessor
+                .getRoutes()
+                .replaceLoginFragment();
     }
 
     //region GettersReg
@@ -36,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
         return mContainerFrameLayout;
     }
 
-    public MainActivityNavigationService getNavigationService() {
-        return mNavigationService;
+    public MainActivityProcessor getProcessor() {
+        return mProcessor;
     }
     //endregion
 }

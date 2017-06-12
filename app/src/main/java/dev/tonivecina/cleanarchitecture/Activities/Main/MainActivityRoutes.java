@@ -11,16 +11,17 @@ import dev.tonivecina.cleanarchitecture.Activities.Main.Fragments.Login.LoginFra
  * @author Toni Vecina on 6/7/17.
  */
 
-public class MainActivityNavigationService {
+public final class MainActivityRoutes {
 
-    private MainActivity mMainActivity;
+    private MainActivityProcessor mProcessor;
 
-    MainActivityNavigationService(final MainActivity mainActivity) {
-        mMainActivity = mainActivity;
+    MainActivityRoutes(final MainActivityProcessor processor) {
+        mProcessor = processor;
     }
 
     private void replace(FrameLayout frameLayout, Fragment fragment) {
-        FragmentTransaction fragmentTransaction = mMainActivity
+        FragmentTransaction fragmentTransaction = mProcessor
+                .getView()
                 .getFragmentManager()
                 .beginTransaction();
 
@@ -31,14 +32,18 @@ public class MainActivityNavigationService {
     }
 
     public void replaceDetailFragment(final String origin) {
-        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
+        FrameLayout frameLayout = mProcessor
+                .getView()
+                .getContainerFrameLayout();
         DetailFragment fragment = DetailFragment.get(origin);
 
         replace(frameLayout, fragment);
     }
 
     void replaceLoginFragment() {
-        FrameLayout frameLayout = mMainActivity.getContainerFrameLayout();
+        FrameLayout frameLayout = mProcessor
+                .getView()
+                .getContainerFrameLayout();
         LoginFragment fragment = LoginFragment.get();
 
         replace(frameLayout, fragment);

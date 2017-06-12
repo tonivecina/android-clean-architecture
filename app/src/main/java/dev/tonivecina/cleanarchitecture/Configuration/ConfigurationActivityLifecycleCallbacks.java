@@ -8,7 +8,7 @@ import android.os.Bundle;
  * @author Toni Vecina on 6/7/17.
  */
 
-public class ConfigurationActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+class ConfigurationActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
 
     private int mStatusCounter = 0;
     private Configuration.Status mStatus = Configuration.Status.INACTIVE;

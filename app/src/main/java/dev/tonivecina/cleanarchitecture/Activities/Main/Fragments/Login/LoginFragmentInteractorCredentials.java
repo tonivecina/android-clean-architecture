@@ -2,17 +2,22 @@ package dev.tonivecina.cleanarchitecture.Activities.Main.Fragments.Login;
 
 import dev.tonivecina.cleanarchitecture.Entities.Credentials;
 import dev.tonivecina.cleanarchitecture.Patterns.Boolean;
-import dev.tonivecina.cleanarchitecture.Services.DLog;
+import dev.tonivecina.cleanarchitecture.DLog;
 
 /**
- * @author Toni Vecina on 6/7/17.
+ * @author Toni Vecina on 6/12/17.
  */
 
-class LoginFragmentCredentialsService {
+final class LoginFragmentInteractorCredentials {
 
-    LoginFragmentCredentialsService() {}
+    //region GettersReg
+    Credentials getCredentials() {
+        return new Credentials();
+    }
+    //endregion
 
-    void setCredentials(final String email, final String password) throws Exception {
+    //region SettersReg
+    void set(final String email, final String password) throws Exception {
 
         if (email.isEmpty())
             throw new Exception("Email not found");
@@ -23,9 +28,11 @@ class LoginFragmentCredentialsService {
         if (password.length() < 4)
             throw new Exception("Password must contains more than 3 characters");
 
-        Credentials credentials = new Credentials();
+        Credentials credentials = getCredentials();
         credentials.set(email, password);
 
         DLog.success("Credentials were stored.");
     }
+    //endregion
+
 }

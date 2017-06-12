@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import dev.tonivecina.cleanarchitecture.Entities.Credentials;
 import dev.tonivecina.cleanarchitecture.R;
 import dev.tonivecina.cleanarchitecture.Views.EditTexts.LoginFormEditText;
 
@@ -18,13 +17,11 @@ import dev.tonivecina.cleanarchitecture.Views.EditTexts.LoginFormEditText;
 
 public class LoginFragment extends Fragment {
 
-    private LoginFormEditText mEmailEditText, mPasswordEditText;
-
     @SuppressWarnings("FieldCanBeLocal")
     private Button mLoginButton;
+    private LoginFormEditText mEmailEditText, mPasswordEditText;
 
-    private LoginFragmentCredentialsService mCredentialsService;
-    private LoginFragmentOnClickListener mOnClickListenerService;
+    private LoginFragmentProcessor mProcessor;
 
     public static LoginFragment get() {
         LoginFragment fragment = new LoginFragment();
@@ -39,8 +36,7 @@ public class LoginFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         synchronized (this) {
-            mCredentialsService = new LoginFragmentCredentialsService();
-            mOnClickListenerService = new LoginFragmentOnClickListener(this);
+            mProcessor = new LoginFragmentProcessor(this);
         }
     }
 
@@ -54,29 +50,35 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Credentials credentials = new Credentials();
-
         mEmailEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_email);
-        mEmailEditText.setText(credentials.getEmail());
-
         mPasswordEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_password);
-        mPasswordEditText.setText(credentials.getPasswordHash());
+
+        LoginFragmentOnClickListener onClickListener = mProcessor.getOnClickListener();
 
         mLoginButton = (Button) view.findViewById(R.id.fragment_login_button);
-        mLoginButton.setOnClickListener(mOnClickListenerService);
+        mLoginButton.setOnClickListener(onClickListener);
+
+        mProcessor.onViewCreated();
     }
 
     //region GettersReg
-    LoginFormEditText getEmailEditText() {
-        return mEmailEditText;
+    String getEmail() {
+        return mEmailEditText
+                .getText()
+                .toString();
     }
 
-    LoginFormEditText getPasswordEditText() {
-        return mPasswordEditText;
+    String getPassword() {
+        return mPasswordEditText
+                .getText()
+                .toString();
     }
+    //endregion
 
-    LoginFragmentCredentialsService getCredentialsService() {
-        return mCredentialsService;
+    //region SettersReg
+    void setCredentials(@Nullable String email, @Nullable String password) {
+        mEmailEditText.setText(email);
+        mPasswordEditText.setText(password);
     }
     //endregion
 }

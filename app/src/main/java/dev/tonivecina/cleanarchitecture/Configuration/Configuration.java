@@ -2,7 +2,7 @@ package dev.tonivecina.cleanarchitecture.Configuration;
 
 import android.app.Application;
 
-import dev.tonivecina.cleanarchitecture.Services.DLog;
+import dev.tonivecina.cleanarchitecture.DLog;
 
 /**
  * @author Toni Vecina on 6/7/17.
@@ -10,7 +10,7 @@ import dev.tonivecina.cleanarchitecture.Services.DLog;
 
 final public class Configuration extends Application {
 
-    public enum Status {
+    enum Status {
         INACTIVE,
         FOREGROUND,
         BACKGROUND
@@ -18,7 +18,7 @@ final public class Configuration extends Application {
 
     private static Configuration mInstance;
 
-    private ConfigurationActivityLifecycleCallbacks mActivityLifecycleCallbacks;
+    private ConfigurationProcessor mProcessor;
 
     @Override
     public void onCreate() {
@@ -27,18 +27,17 @@ final public class Configuration extends Application {
         mInstance = this;
 
         synchronized (this) {
-            mActivityLifecycleCallbacks = new ConfigurationActivityLifecycleCallbacks();
+            mProcessor = new ConfigurationProcessor();
         }
 
-        registerActivityLifecycleCallbacks(mActivityLifecycleCallbacks);
+        registerActivityLifecycleCallbacks(mProcessor.getActivityLifecycleCallbacks());
 
         DLog.success("Application is ready!");
     }
 
     @Override
     public void onTerminate() {
-        unregisterActivityLifecycleCallbacks(mActivityLifecycleCallbacks);
-
+        unregisterActivityLifecycleCallbacks(mProcessor.getActivityLifecycleCallbacks());
         super.onTerminate();
     }
 
@@ -46,7 +45,9 @@ final public class Configuration extends Application {
     public static synchronized Configuration get() { return mInstance; }
 
     public Status getStatus() {
-        return mActivityLifecycleCallbacks.getStatus();
+        return mProcessor
+                .getActivityLifecycleCallbacks()
+                .getStatus();
     }
     //endregion
 }
