@@ -519,6 +519,139 @@ final public class Boolean {
 
 ## Services
 
+If your project needs location services, network services... Please, not duplicate code. We create shared services for views that need it.
+
+This example is a location service:
+
+```Android
+public class LocationService implements LocationListener {
+
+    public interface LocationServiceListener {
+        void onLocationUnavailable(String message);
+        void onLocationSuccess(Location location);
+    }
+
+    private Activity mActivity;
+    private LocationServiceListener mListener;
+    private LocationManager mLocationManager;
+
+    public LocationService(Activity activity, LocationServiceListener listener) {
+        mActivity = activity;
+        mListener = listener;
+        mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+    }
+
+    private boolean isGpsAvailable() {
+        return mLocationManager.isProviderEnabled(GPS_PROVIDER);
+    }
+
+    private boolean isNetworkAvailable() {
+        return mLocationManager.isProviderEnabled(NETWORK_PROVIDER);
+    }
+
+    public void getLocation() {
+        if (!isGpsAvailable() && !isNetworkAvailable()) {
+            String message = mActivity.getString(R.string.ERROR_localization_unavailable_lbl);
+            mListener.onLocationUnavailable(message);
+            return;
+        }
+
+        updateLocation();
+    }
+
+    private void updateLocation() {
+        boolean internetConnection = ConnectivityService.isNetworkAvailable();
+
+        if (!internetConnection) {
+            String message = mActivity.getString(R.string.ERROR_internet_connection_unavailable_lbl);
+            mListener.onLocationUnavailable(message);
+            DebugLog.error("Internet connection unavailable");
+
+            return;
+        }
+
+        int finePermission = ContextCompat
+                .checkSelfPermission(
+                        mActivity,
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+
+        int coarsePermission = ContextCompat
+                .checkSelfPermission(
+                        mActivity,
+                        Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        if (finePermission != PackageManager.PERMISSION_GRANTED
+                && coarsePermission != PackageManager.PERMISSION_GRANTED)
+        {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                String[] permissions = new String[] {
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                };
+
+                ActivityCompat.requestPermissions(mActivity, permissions, 200);
+            }
+        }
+        else {
+            String provider = NETWORK_PROVIDER;
+
+            if (!isNetworkAvailable()) {
+                provider = GPS_PROVIDER;
+                Log.d("LocationService", "Gps provider unavailable");
+                Log.d("LocationService", "Use network provider");
+            }
+
+            mLocationManager.requestLocationUpdates(provider, 0, 0, this);
+        }
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        String message = mActivity.getString(R.string.ERROR_localization_unavailable_lbl);
+        mListener.onLocationUnavailable(message);
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        updateLocation();
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        switch (status) {
+            case LocationProvider.OUT_OF_SERVICE:
+            case LocationProvider.TEMPORARILY_UNAVAILABLE:
+                String message = mActivity.getString(R.string.ERROR_localization_unavailable_lbl);
+                mListener.onLocationUnavailable(message);
+                break;
+            case LocationProvider.AVAILABLE:
+                updateLocation();
+                break;
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        int finePermission = ContextCompat
+                .checkSelfPermission(
+                        mActivity,
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+
+        int coarsePermission = ContextCompat
+                .checkSelfPermission(
+                        mActivity,
+                        Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        if (finePermission == PackageManager.PERMISSION_GRANTED
+                && coarsePermission == PackageManager.PERMISSION_GRANTED)
+        {
+            mLocationManager.removeUpdates(this);
+            mListener.onLocationSuccess(location);
+        }
+    }
+}
+```
+
 ## Views
 
 For a good design is necessary that we have custom views like EditText, TextViews, etc. This custom classes must be localized here.
