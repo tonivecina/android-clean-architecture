@@ -399,9 +399,108 @@ This architecture paradigm is:
 
 ## Entities
 
+The entities are localized in two categories, **Local** for memory resources and **Dynamic** for API resources (for example).
+
 ### Local entity
 
+A local entity could be Credentials. Look at this example code:
+
+```Android
+final public class Credentials {
+    
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String PREFERENCES_NAME = "credentials";
+
+    private final String BUNDLE_EMAIL = "email";
+    private final String BUNDLE_PASSWORD_HASH = "passwordHash";
+    private final String BUNDLE_TOKEN = "token";
+
+    private SharedPreferences mPreferences;
+
+    public Credentials() {
+        Context context = Configuration.get();
+
+        synchronized (this) {
+            mPreferences = context
+                    .getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        }
+    }
+
+    //region GettersReg
+    @Nullable
+    public String getEmail() {
+        return mPreferences.getString(BUNDLE_EMAIL, null);
+    }
+
+    @Nullable
+    public String getPasswordHash() {
+        return mPreferences.getString(BUNDLE_PASSWORD_HASH, null);
+    }
+    
+    public boolean isLogged() {
+        return getEmail() != null && getPasswordHash() != null;
+    }
+    //endregion
+
+    //region SettersReg
+    public void set(final String email, final String passwordHash) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(BUNDLE_EMAIL, email);
+        editor.putString(BUNDLE_PASSWORD_HASH, passwordHash);
+        editor.apply();
+    }
+
+    public void set(final String token) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(BUNDLE_TOKEN, token);
+        editor.apply();
+    }
+
+    public void clear() {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.remove(BUNDLE_EMAIL);
+        editor.remove(BUNDLE_PASSWORD_HASH);
+        editor.remove(BUNDLE_TOKEN);
+        editor.apply();
+    }
+    //endregion
+}
+```
+
 ### Dynamic entity
+
+This example is for simple dynamic entity:
+
+```Android
+public class Profile {
+    private String mName;
+    private String mImageUrl;
+
+    //region GettersReg
+
+    public String getName() {
+        return mName;
+    }
+
+    public String getImageUrl() {
+        return mImageUrl;
+    }
+
+    //endregion
+
+    //region SettersReg
+
+    public void setName(String name) {
+        mName = name;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        mImageUrl = imageUrl;
+    }
+
+    //endregion
+}
+```
 
 ## Patterns
 

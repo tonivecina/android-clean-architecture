@@ -1,6 +1,6 @@
 package dev.tonivecina.cleanarchitecture.Activities.Main.Fragments.Login;
 
-import dev.tonivecina.cleanarchitecture.Entities.Credentials;
+import dev.tonivecina.cleanarchitecture.Entities.Local.Credentials;
 import dev.tonivecina.cleanarchitecture.Patterns.Boolean;
 import dev.tonivecina.cleanarchitecture.DLog;
 

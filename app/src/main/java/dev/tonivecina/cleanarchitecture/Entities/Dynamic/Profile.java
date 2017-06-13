@@ -1,4 +1,4 @@
-package dev.tonivecina.cleanarchitecture.Entities;
+package dev.tonivecina.cleanarchitecture.Entities.Dynamic;
 
 /**
  * @author Toni Vecina on 6/8/17.

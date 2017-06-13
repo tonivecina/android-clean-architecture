@@ -4,7 +4,7 @@ import android.content.Context;
 import android.widget.Toast;
 
 import dev.tonivecina.cleanarchitecture.Activities.Main.MainActivity;
-import dev.tonivecina.cleanarchitecture.Entities.Credentials;
+import dev.tonivecina.cleanarchitecture.Entities.Local.Credentials;
 
 /**
  * @author Toni Vecina on 6/12/17.

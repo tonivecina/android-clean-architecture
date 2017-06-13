@@ -1,4 +1,4 @@
-package dev.tonivecina.cleanarchitecture.Entities;
+package dev.tonivecina.cleanarchitecture.Entities.Local;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -11,6 +11,8 @@ import dev.tonivecina.cleanarchitecture.Configuration.Configuration;
  */
 
 final public class Credentials {
+
+    @SuppressWarnings("FieldCanBeLocal")
     private final String PREFERENCES_NAME = "credentials";
 
     private final String BUNDLE_EMAIL = "email";
@@ -39,13 +41,8 @@ final public class Credentials {
         return mPreferences.getString(BUNDLE_PASSWORD_HASH, null);
     }
 
-    @Nullable
-    public String getToken() {
-        return mPreferences.getString(BUNDLE_TOKEN, null);
-    }
-
     public boolean isLogged() {
-        return getEmail() != null && getPasswordHash() != null && getToken() != null;
+        return getEmail() != null && getPasswordHash() != null;
     }
     //endregion
 
