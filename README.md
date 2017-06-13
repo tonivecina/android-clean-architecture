@@ -703,7 +703,7 @@ public class LoginFormEditText extends AppCompatEditText {
 * The classes must not contains more than 250 lines.
 * Not use nomenclature for parameters or methods with more than 80 characters.
 
-## Guidelines
+## Refences
 
 * [Code Style for Contributors](https://source.android.com/source/code-style)
 * [Ribot Project guidelines](https://github.com/ribot/android-guidelines/blob/master/project_and_code_guidelines.md)
