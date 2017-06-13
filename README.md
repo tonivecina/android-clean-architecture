@@ -504,9 +504,50 @@ public class Profile {
 
 ## Patterns
 
+The folder contains custom properties for primitives elements like booleans validators, formatters...
+
+For example, If we want a validator of email format:
+
+```Android
+final public class Boolean {
+
+    public static boolean isValidEmail(CharSequence email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+}
+```
+
 ## Services
 
 ## Views
+
+For a good design is necessary that we have custom views like EditText, TextViews, etc. This custom classes must be localized here.
+
+This is a simple example for an EditText of login view:
+
+```Android
+public class LoginFormEditText extends AppCompatEditText {
+
+    public LoginFormEditText(Context context) {
+        super(context);
+        view(context);
+    }
+
+    public LoginFormEditText(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        view(context);
+    }
+
+    public LoginFormEditText(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        view(context);
+    }
+
+    private void view(Context context) {
+        // Custom properties here.
+    }
+}
+```
 
 ## Recommendations
 

@@ -12,13 +12,20 @@ public class LoginFormEditText extends AppCompatEditText {
 
     public LoginFormEditText(Context context) {
         super(context);
+        view(context);
     }
 
     public LoginFormEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
+        view(context);
     }
 
     public LoginFormEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        view(context);
+    }
+
+    private void view(Context context) {
+        // Custom properties here.
     }
 }
