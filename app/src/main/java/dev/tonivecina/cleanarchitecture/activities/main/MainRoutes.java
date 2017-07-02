@@ -1,19 +1,17 @@
 package dev.tonivecina.cleanarchitecture.activities.main;
 
-import android.content.Context;
 import android.content.Intent;
-
 import dev.tonivecina.cleanarchitecture.activities.addnote.AddNoteActivity;
 
 /**
  * @author Toni Vecina on 6/7/17.
  */
 
-final class MainActivityRoutes {
+final class MainRoutes {
 
     private MainActivity view;
 
-    MainActivityRoutes(MainActivity view) {
+    MainRoutes(MainActivity view) {
         this.view = view;
     }
 

@@ -6,7 +6,7 @@ This guide will show how to build a Android project with a clean architecture. I
 
 * [Packages](#packages)
 	* [Activities](#activities-package)
-	* [Configuration](#configuration-package)
+	* [Application](#application-package)
 	* [Entities](#entities-package)
 	* [Patterns](#patterns-package)
 	* [Services](#services-package)
@@ -15,14 +15,15 @@ This guide will show how to build a Android project with a clean architecture. I
 * [Activities and fragments](#activities-and-fragments)
 	* [View](#view)
 	* [Processor](#processor)
-	* [Listener](#listener)
+	* [Listeners](#listener)
 	* [Routes](#routes)
 	* [Interactor](#interactor)
 
 * [Entities](#entities)
-	* [Local](#local-entity)
+	* [Database](#database-entity)
 	* [Dynamic](#dynamic-entity)
-
+	* [Local](#local-entity)
+	
 * [Patterns](#patterns)
 
 * [Services](#services)
@@ -44,21 +45,25 @@ This packages must be named with Activity name or Fragment name without key '*Ac
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_activities.png)
 
 
-### Configuration package
+### Application package
 
-If you wish manage application class of your project, Configuration file is your file and it will be contained in this package.
+If you wish manage application class of your project, Configuration file is your file and it will be contained in this package. If your project contains a local database, create the clase here, for example: AppDataBase.
 
-![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_configuration.png)
+![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_application.png)
 
 ### Entities package
 
-All models and entities must be contained here.
+All entities must be contained here and must be categorized like Database, Dynamic or Local.
+
+* Dynamic for generic entities, for example entities for an Api.
+* Database entities.
+* Local for entities with memory storage, for example: Credentials.
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_entities.png)
 
 ### Patterns package
 
-The global patterns that it can be used at any class are contained here like Boolean, String, etc. File of class must be named equal to object name; String, Boolean...
+The global patterns that it can be used at any class are contained here like Boolean, String, etc. File of class must be object name with Pattern; StringPattern, BooleanPattern...
 
 ![](https://raw.githubusercontent.com/tonivecina/android-clean-architecture/master/images/screen_package_patterns.png)
 
@@ -97,9 +102,18 @@ This is a simple Activity example:
 ```Android
 public class MainActivity extends AppCompatActivity {
 
-    private FrameLayout mContainerFrameLayout;
+    static final int REQUEST_CODE = 1001;
 
-    private MainActivityProcessor mProcessor;
+    @SuppressWarnings("FieldCanBeLocal")
+    private RecyclerView noteRecyclerView;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private AddButton addButton;
+
+    private MainRecyclerViewNoteAdapter noteAdapter;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private MainProcessor mProcessor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,102 +121,57 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         synchronized (this) {
-            mProcessor = new MainActivityProcessor(this);
+            mProcessor = new MainProcessor(this);
+            noteAdapter = new MainRecyclerViewNoteAdapter();
         }
 
-        mContainerFrameLayout = (FrameLayout) findViewById(R.id.activity_main_frameLayout);
+        noteRecyclerView = (RecyclerView) findViewById(R.id.activity_main_recyclerView);
+        noteRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        noteRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        noteRecyclerView.setAdapter(noteAdapter);
 
-        mProcessor
-                .getRoutes()
-                .replaceLoginFragment();
-    }
+        View.OnClickListener onClickListener = mProcessor.getOnClickListener();
 
-    void replace(Fragment fragment) {
-        FragmentTransaction fragmentTransaction = mProcessor
-                .getView()
-                .getFragmentManager()
-                .beginTransaction();
+        addButton = (AddButton) findViewById(R.id.activity_main_button_add);
+        addButton.setOnClickListener(onClickListener);
 
-        String tag = fragment.getClass().getSimpleName();
-
-        fragmentTransaction.replace(mContainerFrameLayout.getId(), fragment, tag);
-        fragmentTransaction.commit();
-    }
-
-    //region GettersReg
-    public MainActivityProcessor getProcessor() {
-        return mProcessor;
-    }
-    //endregion
-}
-```
-
-... or Fragment:
-
-```Android
-public class LoginFragment extends Fragment {
-
-    private Button mLoginButton;
-    private LoginFormEditText mEmailEditText, mPasswordEditText;
-
-    private LoginFragmentProcessor mProcessor;
-
-    public static LoginFragment get() {
-        LoginFragment fragment = new LoginFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-
-        return fragment;
+        mProcessor.onCreate();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        synchronized (this) {
-            mProcessor = new LoginFragmentProcessor(this);
+        if (requestCode == REQUEST_CODE) {
+            onNoteActivityResult(resultCode, data);
         }
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_login, container, false);
-    }
+    //region Private methods
+    private void onNoteActivityResult(int resultCode, Intent data) {
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        if (resultCode != Activity.RESULT_OK) {
+            DLog.info("Note creation was cancelled");
+            return;
+        }
 
-        mEmailEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_email);
-        mPasswordEditText = (LoginFormEditText) view.findViewById(R.id.fragment_login_editText_password);
+        Note note = (Note) data.getSerializableExtra(AddNoteActivity.BUNDLE_NOTE);
 
-        LoginFragmentOnClickListener onClickListener = mProcessor.getOnClickListener();
-
-        mLoginButton = (Button) view.findViewById(R.id.fragment_login_button);
-        mLoginButton.setOnClickListener(onClickListener);
-
-        mProcessor.onViewCreated();
-    }
-
-    //region GettersReg
-    String getEmail() {
-        return mEmailEditText
-                .getText()
-                .toString();
-    }
-
-    String getPassword() {
-        return mPasswordEditText
-                .getText()
-                .toString();
+        if (note != null) {
+            addNote(note);
+        }
     }
     //endregion
 
-    //region SettersReg
-    void setCredentials(@Nullable String email, @Nullable String password) {
-        mEmailEditText.setText(email);
-        mPasswordEditText.setText(password);
+    //region Setters
+    void setNotes(final List<Note> notes) {
+        noteAdapter.setNotes(notes);
+        noteAdapter.notifyDataSetChanged();
+    }
+
+    void addNote(final Note note) {
+        noteAdapter.addNote(note);
+        noteAdapter.notifyDataSetChanged();
     }
     //endregion
 }
@@ -215,108 +184,152 @@ The Process class will manage all elements in this package. This class is the co
 This is a Process example with Listener and Interactor:
 
 ```Android
-final class LoginFragmentProcessor {
+final class MainProcessor implements
+        MainListeners.ActionListener,
+        MainListeners.NotesListener
+{
+    @SuppressWarnings("FieldCanBeLocal")
+    private MainActivity view;
 
-    private LoginFragment mView;
-    private Context mContext;
+    private MainRoutes routes;
+    private MainOnClickListener onClickListener;
+    private MainInteractorNotes notesInteractor;
 
-    private LoginFragmentInteractorCredentials mInteractorCredentials;
+    MainProcessor(MainActivity view) {
+        this.view = view;
+    }
 
-    private LoginFragmentOnClickListener mOnClickListener;
+    void onCreate() {
+        getNotes();
+    }
 
-    LoginFragmentProcessor(LoginFragment view) {
-        mView = view;
-        mContext = mView.getContext();
-
-        synchronized (this) {
-            mInteractorCredentials = new LoginFragmentInteractorCredentials();
-
-            mOnClickListener = new LoginFragmentOnClickListener(this);
+    //region Getters
+    private synchronized MainInteractorNotes getNotesInteractor() {
+        if (notesInteractor == null) {
+            notesInteractor = new MainInteractorNotes(this);
         }
+
+        return notesInteractor;
     }
 
-    void onViewCreated() {
-        Credentials credentials = mInteractorCredentials.getCredentials();
-        mView.setCredentials(credentials.getEmail(), credentials.getPasswordHash());
+    private synchronized MainRoutes getRoutes() {
+        if (routes == null) {
+            routes = new MainRoutes(view);
+        }
+
+        return routes;
     }
 
-    //region GettersReg
-    LoginFragment getView() {
-        return mView;
+    synchronized MainOnClickListener getOnClickListener() {
+
+        if (onClickListener == null) {
+            onClickListener = new MainOnClickListener(this);
+        }
+
+        return onClickListener;
     }
 
-    LoginFragmentOnClickListener getOnClickListener() {
-        return mOnClickListener;
+    private void getNotes() {
+        getNotesInteractor().getAll();
     }
     //endregion
 
-    //region SettersReg
-    void setCredentials() {
-        try {
-            String email = mView.getEmail();
-            String password = mView.getPassword();
+    //region ActionListener
+    @Override
+    public void createNote() {
+        getRoutes().intentAddNoteActivity();
+    }
+    //endregion
 
-            mInteractorCredentials.set(email, password);
-
-            if (mContext instanceof MainActivity) {
-                MainActivity activity = (MainActivity) mContext;
-                activity
-                        .getProcessor()
-                        .getRoutes()
-                        .replaceDetailFragment(mView.getClass().getSimpleName());
-            }
-
-        } catch (Exception exception) {
-            Toast.makeText(mContext, exception.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+    //region NotesListener
+    @Override
+    public void onNotesReceived(List<Note> notes) {
+        view.setNotes(notes);
     }
     //endregion
 }
 ```
 
-### Listener
+### Listeners
 
-The Listener elements correspond with View listeners. This listeners will not apply in view directly because it's managed by Processor. In this class, interfaces like OnClickListener, OnFocusChangeListeners, OnScrollListener... will be implemented.
-
-Methods like *OnActivityResults*, *OnRequestPermissionsResults*... inside of Activity class are categorized as listener elements too.
-
-Its nomenclature must be:
-
-```
-PARENT CLASS NAME + INTERFACE OR METHOD NAME
-```
-
-* *MainActivity****OnScrollListener***
-* *LoginFragment****OnClickListener***
-* *GoalActivity****OnActivityResults***
-* *RequestActivity****OnRequestPermissionsResults***
-* ...
-
-This is an example for a click listener:
+All communication between processor and interactors must be bidirectional through listeners. All listeners needs by interactors will be declared in Listener (abstract class).
 
 ```Android
-class LoginFragmentOnClickListener implements View.OnClickListener {
+abstract class MainListeners {
 
-    private LoginFragmentProcessor mProcessor;
+    interface ActionListener {
+        void createNote();
+    }
 
-    LoginFragmentOnClickListener(LoginFragmentProcessor processor) {
-        mProcessor = processor;
+    interface NotesListener {
+        void onNotesReceived(List<Note> notes);
+    }
+}
+```
+
+### Interactors
+
+The Interactors can communicate directly with entities to manage data or services.
+
+```Android
+final class MainInteractorNotes {
+
+    private AppDataBase dataBase;
+    private MainListeners.NotesListener listener;
+
+    MainInteractorNotes(MainListeners.NotesListener listener) {
+        dataBase = Configuration
+                .getInstance()
+                .getAppDataBase();
+
+        this.listener = listener;
+    }
+
+    //region Getters
+    void getAll() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                List<Note> notes = dataBase.noteDao().getAll();
+                Collections.reverse(notes);
+
+                listener.onNotesReceived(notes);
+            }
+        });
+    }
+    //endregion
+}
+```
+
+Implementations like OnClickListener be able to be considered as special interactor.
+
+```Android
+final class MainOnClickListener implements View.OnClickListener {
+
+    private MainListeners.ActionListener listener;
+
+    MainOnClickListener(MainListeners.ActionListener listener) {
+        this.listener = listener;
     }
 
     @Override
     public void onClick(View v) {
-        int id = v.getId();
+        final int id = v.getId();
 
-        switch (id) {
-            case R.id.fragment_login_button:
-                mProcessor.setCredentials();
-                break;
-
-            default:
-                break;
+        if (id == R.id.activity_main_button_add) {
+            listener.createNote();
         }
     }
 }
+```
+
+In view must be declared:
+
+```Android
+View.OnClickListener onClickListener = mProcessor.getOnClickListener();
+
+addButton = (AddButton) findViewById(R.id.activity_main_button_add);
+addButton.setOnClickListener(onClickListener);
 ```
 
 ### Routes
@@ -324,72 +337,18 @@ class LoginFragmentOnClickListener implements View.OnClickListener {
 All navigations and connections with other activites or fragments are defined here. You apply intents here. Look at this example:
 
 ```Android
-public final class MainActivityRoutes {
+final class MainRoutes {
 
-    private MainActivityProcessor mProcessor;
+    private MainActivity view;
 
-    MainActivityRoutes(final MainActivityProcessor processor) {
-        mProcessor = processor;
+    MainRoutes(MainActivity view) {
+        this.view = view;
     }
 
-    public void replaceDetailFragment(final String origin) {
-        DetailFragment fragment = DetailFragment.get(origin);
-
-        mProcessor
-                .getView()
-                .replace(fragment);
+    void intentAddNoteActivity() {
+        Intent intent = new Intent(view, AddNoteActivity.class);
+        view.startActivityForResult(intent, MainActivity.REQUEST_CODE, null);
     }
-
-    void replaceLoginFragment() {
-        LoginFragment fragment = LoginFragment.get();
-
-        mProcessor
-                .getView()
-                .replace(fragment);
-    }
-    
-    void intentLoginActivity() {
-        LoginActivity activity = new LoginActivity();
-
-        Intent intent = new Intent(mProcessor.getView(), LoginActivity.class);
-        mProcessor
-                .getView()
-                .startActivity(intent);
-    }
-}
-```
-
-### Interactor
-
-The Interactors can communicate directly with entities to manage data or services.
-
-```Android
-final class LoginFragmentInteractorCredentials {
-
-    //region GettersReg
-    Credentials getCredentials() {
-        return new Credentials();
-    }
-    //endregion
-
-    //region SettersReg
-    void set(final String email, final String password) throws Exception {
-
-        if (email.isEmpty())
-            throw new Exception("Email not found");
-
-        if (!Boolean.isValidEmail(email))
-            throw new Exception("Email is invalid");
-
-        if (password.length() < 4)
-            throw new Exception("Password must contains more than 3 characters");
-
-        Credentials credentials = getCredentials();
-        credentials.set(email, password);
-
-        DLog.success("Credentials were stored.");
-    }
-    //endregion
 }
 ```
 
@@ -502,6 +461,72 @@ public class Profile {
 }
 ```
 
+### Database entity
+
+This example with Room service:
+
+```Android
+@Entity(tableName = "notes")
+public final class Note implements Serializable {
+
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    @ColumnInfo(name = "title")
+    private String title;
+
+    @ColumnInfo(name = "description")
+    private String description;
+
+    @ColumnInfo(name = "createdAt")
+    private long createdAt;
+
+    //region Getters
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    @Ignore
+    public Date getCreatedDate() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(createdAt);
+
+        return calendar.getTime();
+    }
+    //endregion
+
+    //region Setters
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+    //endregion
+}
+```
+
 ## Patterns
 
 The folder contains custom properties for primitives elements like booleans validators, formatters...
@@ -509,7 +534,11 @@ The folder contains custom properties for primitives elements like booleans vali
 For example, If we want a validator of email format:
 
 ```Android
-final public class Boolean {
+public final class BooleanPattern {
+
+    private BooleanPattern() {
+        // empty constructor
+    }
 
     public static boolean isValidEmail(CharSequence email) {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches();

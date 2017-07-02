@@ -6,9 +6,9 @@ import android.util.Patterns;
  * @author Toni Vecina on 6/7/17.
  */
 
-public final class Boolean {
+public final class BooleanPattern {
 
-    private Boolean() {
+    private BooleanPattern() {
         // empty constructor
     }
 

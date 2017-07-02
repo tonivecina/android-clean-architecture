@@ -16,13 +16,13 @@ import dev.tonivecina.cleanarchitecture.entities.database.note.Note;
  * @author Toni Vecina on 7/2/17.
  */
 
-final class MainActivityRecyclerViewNoteAdapter extends RecyclerView.Adapter<MainActivityViewHolderNote> {
+final class MainRecyclerViewNoteAdapter extends RecyclerView.Adapter<MainViewHolderNote> {
 
     private List<Note> notes = new ArrayList<>();
     private Context context;
 
     @Override
-    public MainActivityViewHolderNote onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MainViewHolderNote onCreateViewHolder(ViewGroup parent, int viewType) {
 
         if (context == null) {
             context = parent.getContext();
@@ -30,11 +30,11 @@ final class MainActivityRecyclerViewNoteAdapter extends RecyclerView.Adapter<Mai
 
         View holder = LayoutInflater.from(context).inflate(R.layout.cardview_note, parent, false);
 
-        return new MainActivityViewHolderNote(holder);
+        return new MainViewHolderNote(holder);
     }
 
     @Override
-    public void onBindViewHolder(MainActivityViewHolderNote holder, int position) {
+    public void onBindViewHolder(MainViewHolderNote holder, int position) {
         Note note = notes.get(position);
         holder.setView(note);
     }
@@ -48,18 +48,10 @@ final class MainActivityRecyclerViewNoteAdapter extends RecyclerView.Adapter<Mai
     void setNotes(final List<Note> notes) {
         this.notes.clear();
         this.notes.addAll(notes);
-        notifyDataSetChanged();
     }
 
     void addNote(final Note note) {
         notes.add(0, note);
-        notifyDataSetChanged();
-    }
-
-    void updateNote(final int index, final Note note) {
-        notes.remove(index);
-        notes.add(index, note);
-        notifyDataSetChanged();
     }
     //endregion
 }

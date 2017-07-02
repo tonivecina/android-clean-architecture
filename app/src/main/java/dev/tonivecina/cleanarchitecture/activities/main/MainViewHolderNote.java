@@ -12,12 +12,12 @@ import dev.tonivecina.cleanarchitecture.views.textviews.TitleTextView;
  * @author Toni Vecina on 7/2/17.
  */
 
-final class MainActivityViewHolderNote extends RecyclerView.ViewHolder {
+final class MainViewHolderNote extends RecyclerView.ViewHolder {
 
     private TitleTextView titleTextView;
     private DateTextView dateTextView;
 
-    MainActivityViewHolderNote(View itemView) {
+    MainViewHolderNote(View itemView) {
         super(itemView);
 
         titleTextView = (TitleTextView) itemView.findViewById(R.id.cardView_note_textView_title);
@@ -26,6 +26,6 @@ final class MainActivityViewHolderNote extends RecyclerView.ViewHolder {
 
     void setView(final Note note) {
         titleTextView.setText(note.getTitle());
-        dateTextView.setDate(note.getModifiedDate(), "EEE dd, MMM");
+        dateTextView.setDate(note.getCreatedDate(), "EEE dd, MMM");
     }
 }

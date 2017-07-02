@@ -1,4 +1,4 @@
-package dev.tonivecina.cleanarchitecture.configuration;
+package dev.tonivecina.cleanarchitecture.application;
 
 import android.app.Application;
 import android.arch.persistence.room.Room;
@@ -12,12 +12,14 @@ import dev.tonivecina.cleanarchitecture.DLog;
 public final class Configuration extends Application {
     private static final String DATABASE_NAME = "notesDB";
 
-    private static Configuration instance = new Configuration();
+    private static Configuration instance;
     private AppDataBase appDataBase;
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        instance = this;
 
         synchronized (this) {
             appDataBase = Room
@@ -35,7 +37,7 @@ public final class Configuration extends Application {
         return instance;
     }
 
-    public AppDataBase getAppDataBase() {
+    public synchronized AppDataBase getAppDataBase() {
         return appDataBase;
     }
     //endregion

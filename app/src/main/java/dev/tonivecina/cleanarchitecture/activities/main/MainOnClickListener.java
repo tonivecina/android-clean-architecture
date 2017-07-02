@@ -8,11 +8,11 @@ import dev.tonivecina.cleanarchitecture.R;
  * @author Toni Vecina on 7/2/17.
  */
 
-final class MainActivityOnClickListener implements View.OnClickListener {
+final class MainOnClickListener implements View.OnClickListener {
 
-    private MainActivityListeners.ActionListeners listener;
+    private MainListeners.ActionListener listener;
 
-    MainActivityOnClickListener(MainActivityListeners.ActionListeners listener) {
+    MainOnClickListener(MainListeners.ActionListener listener) {
         this.listener = listener;
     }
 

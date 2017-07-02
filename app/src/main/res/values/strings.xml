@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">Clean Architecture</string>
 
-    <string name="action_login">Login</string>
+    <string name="action_add">+</string>
+    <string name="action_apply_note">Apply note</string>
 
-    <string name="placeholder_email">here@email.com</string>
-    <string name="placeholder_password">password</string>
+    <string name="placeholder_insert_title">Insert title here</string>
+    <string name="placeholder_insert_description">Insert description here</string>
 
-    <string name="title_email">Email:</string>
-    <string name="title_origin">Origin:</string>
-    <string name="title_password">Password:</string>
-
+    <string name="title_note_title">Note</string>
+    <string name="title_date">Date</string>
 </resources>

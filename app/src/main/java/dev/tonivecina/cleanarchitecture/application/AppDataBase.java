@@ -1,4 +1,4 @@
-package dev.tonivecina.cleanarchitecture.configuration;
+package dev.tonivecina.cleanarchitecture.application;
 
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.RoomDatabase;

@@ -1,29 +1,42 @@
 package dev.tonivecina.cleanarchitecture.activities.main;
 
+import android.os.AsyncTask;
+
+import java.util.Collections;
 import java.util.List;
 
-import dev.tonivecina.cleanarchitecture.configuration.Configuration;
+import dev.tonivecina.cleanarchitecture.application.AppDataBase;
+import dev.tonivecina.cleanarchitecture.application.Configuration;
 import dev.tonivecina.cleanarchitecture.entities.database.note.Note;
-import dev.tonivecina.cleanarchitecture.entities.database.note.NoteDao;
 
 /**
  * @author Toni Vecina on 7/2/17.
  */
 
-final class MainActivityInteractorNotes {
+final class MainInteractorNotes {
 
-    private NoteDao noteDao;
+    private AppDataBase dataBase;
+    private MainListeners.NotesListener listener;
 
-    MainActivityInteractorNotes() {
-        noteDao = Configuration
+    MainInteractorNotes(MainListeners.NotesListener listener) {
+        dataBase = Configuration
                 .getInstance()
-                .getAppDataBase()
-                .noteDao();
+                .getAppDataBase();
+
+        this.listener = listener;
     }
 
     //region Getters
-    List<Note> getAll() {
-        return noteDao.getAll();
+    void getAll() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                List<Note> notes = dataBase.noteDao().getAll();
+                Collections.reverse(notes);
+
+                listener.onNotesReceived(notes);
+            }
+        });
     }
     //endregion
 }

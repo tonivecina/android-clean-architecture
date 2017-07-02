@@ -8,16 +8,18 @@ import dev.tonivecina.cleanarchitecture.entities.database.note.Note;
  * @author Toni Vecina on 6/12/17.
  */
 
-final class MainActivityProcessor implements MainActivityListeners.ActionListeners {
-
+final class MainProcessor implements
+        MainListeners.ActionListener,
+        MainListeners.NotesListener
+{
     @SuppressWarnings("FieldCanBeLocal")
     private MainActivity view;
 
-    private MainActivityRoutes routes;
-    private MainActivityOnClickListener onClickListener;
-    private MainActivityInteractorNotes notesInteractor;
+    private MainRoutes routes;
+    private MainOnClickListener onClickListener;
+    private MainInteractorNotes notesInteractor;
 
-    MainActivityProcessor(MainActivity view) {
+    MainProcessor(MainActivity view) {
         this.view = view;
     }
 
@@ -26,41 +28,47 @@ final class MainActivityProcessor implements MainActivityListeners.ActionListene
     }
 
     //region Getters
-    private synchronized MainActivityInteractorNotes getNotesInteractor() {
+    private synchronized MainInteractorNotes getNotesInteractor() {
         if (notesInteractor == null) {
-            notesInteractor = new MainActivityInteractorNotes();
+            notesInteractor = new MainInteractorNotes(this);
         }
 
         return notesInteractor;
     }
 
-    private synchronized MainActivityRoutes getRoutes() {
+    private synchronized MainRoutes getRoutes() {
         if (routes == null) {
-            routes = new MainActivityRoutes(view);
+            routes = new MainRoutes(view);
         }
 
         return routes;
     }
 
-    synchronized MainActivityOnClickListener getOnClickListener() {
+    synchronized MainOnClickListener getOnClickListener() {
 
         if (onClickListener == null) {
-            onClickListener = new MainActivityOnClickListener(this);
+            onClickListener = new MainOnClickListener(this);
         }
 
         return onClickListener;
     }
 
     private void getNotes() {
-        List<Note> notes = getNotesInteractor().getAll();
-        view.setNotes(notes);
+        getNotesInteractor().getAll();
     }
     //endregion
 
-    //region ActionListeners
+    //region ActionListener
     @Override
     public void createNote() {
         getRoutes().intentAddNoteActivity();
+    }
+    //endregion
+
+    //region NotesListener
+    @Override
+    public void onNotesReceived(List<Note> notes) {
+        view.setNotes(notes);
     }
     //endregion
 }
